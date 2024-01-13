@@ -1,1 +1,47 @@
+version: '3'
 
+services:
+  db:
+    image: mysql:latest
+    container_name: my_mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: bookapi
+      MYSQL_USER:app
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  api:
+    image: php:7.4-fpm
+    container_name: my_php_api
+    working_dir: /var/www/html/api
+    volumes:
+      - ./api:/var/www/html/api
+    depends_on:
+      - db
+
+  client:
+    image: node:14
+    container_name: my_nuxt_client
+    working_dir: /var/www/html/client
+    volumes:
+      - ./client:/var/www/html/client
+    depends_on:
+      - api
+
+  nginx:
+    image: nginx:latest
+    container_name: my_nginx_proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - api
+      - client
+
+volumes:
+  db_data:
